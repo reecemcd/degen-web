@@ -1,5 +1,5 @@
-import styles from './paop.module.scss';
+import styles from './poap.module.scss';
 
-export default function PaopPage() {
+export default function PoapPage() {
   return <div>/admin/poap</div>;
 }
