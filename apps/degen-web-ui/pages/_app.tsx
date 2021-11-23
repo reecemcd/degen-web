@@ -2,6 +2,7 @@ import { AppProps } from 'next/app';
 import { ChakraProvider } from '@chakra-ui/react';
 import Head from 'next/head';
 import Layout from '../src/layout/layout';
+import theme from '../src/core/chakra-theme';
 import './styles.scss';
 
 function CustomApp({ Component, pageProps }: AppProps) {
@@ -10,7 +11,7 @@ function CustomApp({ Component, pageProps }: AppProps) {
       <Head>
         <title>Degen Bot</title>
       </Head>
-      <ChakraProvider>
+      <ChakraProvider theme={theme}>
         <Layout>
           <Component {...pageProps} />
         </Layout>
