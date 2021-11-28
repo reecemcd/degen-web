@@ -1,8 +1,9 @@
 import { Box, Flex } from '@chakra-ui/layout';
+import React from 'react';
 import { BaseProps } from '../../core/interfaces/app-props.interface';
 import { Guild } from '../../core/models/guild';
-import { GridRow } from '../../layout/grid-row';
 import { GuildListItem } from './guild-list-item';
+import { GridRow } from './layout/grid-row';
 
 export interface GuildProps extends BaseProps {
   availableGuilds: Guild[];

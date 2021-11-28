@@ -5,6 +5,7 @@
   "scripts": {
     "start": "nx serve",
     "build": "nx build",
+    "build:prod": "nx build --prod",
     "test": "nx test",
     "prepare": "husky install"
   },
@@ -18,9 +19,10 @@
     "autoprefixer": "^10.4.0",
     "classnames": "^2.3.1",
     "core-js": "^3.6.5",
+    "discord.js": "^13.3.1",
     "framer-motion": "^4.1.17",
     "next": "12.0.0",
-    "next-auth": "^3.29.0",
+    "next-auth": "4.0.0-beta.7",
     "postcss": "^8.3.11",
     "react": "17.0.2",
     "react-dom": "17.0.2",

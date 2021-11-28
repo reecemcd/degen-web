@@ -1,21 +1,21 @@
 import NextAuth from 'next-auth';
-import Providers from 'next-auth/providers';
+import DiscordProvider from 'next-auth/providers/discord';
 
 export default NextAuth({
   providers: [
-    Providers.Discord({
+    DiscordProvider({
       clientId: process.env.DISCORD_CLIENT_ID,
       clientSecret: process.env.DISCORD_CLIENT_SECRET,
-      scope: 'identify email guilds',
+      // scope: 'identify email guilds',
     }),
   ],
   callbacks: {
-    async jwt(token, user, account) {
+    async jwt({ token, user, account }) {
       // Initial sign in
       if (account && user) {
         return {
           accessToken: account.access_token,
-          accessTokenExpires: Date.now() + account.expires_in * 1000,
+          accessTokenExpires: account.expires_at,
           refreshToken: account.refresh_token,
           user,
         };
@@ -23,7 +23,7 @@ export default NextAuth({
 
       return token;
     },
-    async session(session, token) {
+    async session({ session, token }) {
       session.user = token.user;
       session.accessToken = token.accessToken;
       session.error = token.error;

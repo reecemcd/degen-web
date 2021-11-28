@@ -3,25 +3,24 @@ import {
   Avatar,
   Box,
   Button,
-  Flex,
   Menu,
   MenuButton,
   MenuItem,
   MenuList,
   Text,
 } from '@chakra-ui/react';
-import { signIn, signOut, useSession } from 'next-auth/client';
-import NextLink from 'next/link';
-import React, { useEffect } from 'react';
+import { signIn, signOut, useSession } from 'next-auth/react';
+import React from 'react';
+import { SessionStatus } from '../../../core/enums/auth.enums';
 
-export function SignIn() {
-  const [session, loading] = useSession();
+export function AuthButton() {
+  const { data: session, status } = useSession();
 
-  if (session && !loading) {
+  if (session && status === SessionStatus.Authenticated) {
     return (
       <Menu>
         <MenuButton pr="3">
-          <Button variant="outline" className="flex items-center">
+          <Button as={Box} variant="outline" className="flex items-center">
             <Avatar size="xs" src={session.user?.image || ''} />
             <Text fontWeight="bold" className="mx-2">
               {session.user?.name}{' '}
@@ -30,16 +29,18 @@ export function SignIn() {
           </Button>
         </MenuButton>
         <MenuList>
-          <MenuItem onClick={() => signOut()}>Log Out</MenuItem>
+          <MenuItem onClick={() => signOut({ callbackUrl: '/' })}>Log Out</MenuItem>
         </MenuList>
       </Menu>
     );
   }
 
-  if (!loading) {
+  if (status !== SessionStatus.Authenticated) {
     return (
       <Box>
-        <Button onClick={() => signIn('discord')}>Log In</Button>
+        <Button onClick={() => signIn('discord', { callbackUrl: '/admin' })}>
+          Log In
+        </Button>
       </Box>
     );
   }
