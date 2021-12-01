@@ -12,7 +12,7 @@ const MetamaskButton = ({ message = 'Connect Wallet', activatedContent, callback
   };
 
   const metamaskButton = (
-    <Button variant="contained" color="secondary" onClick={() => connectMetamask()}>
+    <Button colorScheme="teal" variant="outline" onClick={() => connectMetamask()}>
       {message}
     </Button>
   );
