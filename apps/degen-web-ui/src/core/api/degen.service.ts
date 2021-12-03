@@ -24,11 +24,13 @@ export class DegenService implements IDegenService {
     return admins;
   }
 
-  addPoapAdmins(admin: IPoapAdmin) {
+  async addPoapAdmins(admin: IPoapAdmin) {
+    const newAdmin = await this.db.collection('poapAdmins').insertOne(admin);
     return;
   }
 
-  removePoapAdmins(admin: IPoapAdmin) {
+  async removePoapAdmins(admin: IPoapAdmin) {
+    const removedAdmin = await this.db.collection('poapAdmins').deleteOne(admin);
     return;
   }
 }

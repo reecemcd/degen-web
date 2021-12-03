@@ -3,11 +3,14 @@ import React, { useContext } from 'react';
 import { PageAuthGuard } from '../../../src/shared/components/auth/page-auth-guard';
 import { GridContainer } from '../../../src/shared/components/layout/grid-container';
 import { getDegenService } from '../../../src/core/api/degen.service';
-import { IPoapAdmin } from '../../../src/core/interfaces/degen-service.interface';
+import {
+  IDegenService,
+  IPoapAdmin,
+} from '../../../src/core/interfaces/degen-service.interface';
 import { PoapConfigTable } from '../../../src/poap/poap-config-table';
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const degenService = await getDegenService(context.req);
+  const degenService: IDegenService = await getDegenService(context.req);
 
   return {
     props: {
