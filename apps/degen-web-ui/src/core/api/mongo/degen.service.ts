@@ -1,0 +1,50 @@
+import { IncomingMessage } from 'http';
+import { DegenService, PoapAdmin } from '../../interfaces/degen-service.interface';
+import * as mongoDB from 'mongodb';
+import { connectToDatabase } from './db';
+
+// Mongo Implementation of Degen Service
+export class MongoDegenService implements DegenService {
+  db: mongoDB.Db;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async init(req: any) {
+    // TODO : make accessible from server globals
+    this.db = await connectToDatabase();
+    return this;
+  }
+
+  async getPoapAdmins(guildId: string) {
+    console.log(guildId);
+    const admins = await this.db
+      .collection('poapAdmins')
+      .find({ discordServerId: guildId })
+      .toArray();
+
+    return admins;
+  }
+
+  async addPoapAdmins(admin: PoapAdmin) {
+    const result = await this.db
+      .collection('poapAdmins')
+      .insertOne(admin)
+      .catch((err) => {
+        console.log(err);
+      });
+    return result;
+  }
+
+  async removePoapAdmins(admin: PoapAdmin) {
+    const result = await this.db
+      .collection('poapAdmins')
+      .deleteMany(admin)
+      .catch((err) => {
+        console.log(err);
+      });
+    return result;
+  }
+}
+
+export const getDegenService = async (req: IncomingMessage) => {
+  return new MongoDegenService().init(req);
+};

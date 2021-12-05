@@ -2,15 +2,15 @@ import { GetServerSideProps } from 'next';
 import React, { useContext } from 'react';
 import { PageAuthGuard } from '../../../src/shared/components/auth/page-auth-guard';
 import { GridContainer } from '../../../src/shared/components/layout/grid-container';
-import { getDegenService } from '../../../src/core/api/degen.service';
+import { getDegenService } from '../../../src/core/api/mongo/degen.service';
 import {
-  IDegenService,
-  IPoapAdmin,
+  DegenService,
+  PoapAdmin,
 } from '../../../src/core/interfaces/degen-service.interface';
 import { PoapConfigTable } from '../../../src/poap/poap-config-table';
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const degenService: IDegenService = await getDegenService(context.req);
+  const degenService: DegenService = await getDegenService(context.req);
 
   return {
     props: {
@@ -23,7 +23,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 };
 
 export interface ConfigurePageProps {
-  admins: IPoapAdmin[];
+  admins: PoapAdmin[];
 }
 
 export default function PoapConfigurePage({ admins }: ConfigurePageProps) {

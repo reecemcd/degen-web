@@ -1,10 +1,10 @@
-export interface IDegenService {
-  getPoapAdmins(guildId: string);
-  addPoapAdmins(admin: IPoapAdmin);
-  removePoapAdmins(admin: IPoapAdmin);
+export interface DegenService {
+  getPoapAdmins(guildId: string | string[]);
+  addPoapAdmins(admin: PoapAdmin);
+  removePoapAdmins(admin: PoapAdmin);
 }
 
-export interface IPoapAdmin {
+export interface PoapAdmin {
   objectType: string;
   discordObjectId: string;
   discordObjectName: string;
