@@ -1,16 +1,13 @@
 import { IncomingMessage } from 'http';
 import { DegenService, PoapAdmin } from '../../interfaces/degen-service.interface';
 import * as mongoDB from 'mongodb';
-import { connectToDatabase } from './db';
 
-// Mongo Implementation of Degen Service
 export class MongoDegenService implements DegenService {
   db: mongoDB.Db;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async init(req: any) {
-    // TODO : make accessible from server globals
-    this.db = await connectToDatabase();
+    this.db = req.app.globals.db;
     return this;
   }
 
