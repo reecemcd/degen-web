@@ -12,9 +12,8 @@ export class MongoDegenService implements DegenService {
   }
 
   async getPoapAdmins(guildId: string) {
-    console.log(guildId);
     const admins = await this.db
-      .collection('poapAdmins')
+      .collection(process.env.POAP_ADMIN_COLLECTION_NAME)
       .find({ discordServerId: guildId })
       .toArray();
 
@@ -23,21 +22,15 @@ export class MongoDegenService implements DegenService {
 
   async addPoapAdmins(admin: PoapAdmin) {
     const result = await this.db
-      .collection('poapAdmins')
-      .insertOne(admin)
-      .catch((err) => {
-        console.log(err);
-      });
+      .collection(process.env.POAP_ADMIN_COLLECTION_NAME)
+      .insertOne(admin);
     return result;
   }
 
   async removePoapAdmins(admin: PoapAdmin) {
     const result = await this.db
-      .collection('poapAdmins')
-      .deleteMany(admin)
-      .catch((err) => {
-        console.log(err);
-      });
+      .collection(process.env.POAP_ADMIN_COLLECTION_NAME)
+      .deleteMany(admin);
     return result;
   }
 }

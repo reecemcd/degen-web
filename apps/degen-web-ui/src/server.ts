@@ -1,7 +1,7 @@
-const express = require('express');
-const { Client, Intents } = require('discord.js');
-const { REST } = require('@discordjs/rest');
-const connectToDatabase = require('./core/api/mongo/db');
+import express from 'express';
+import { Client, Intents } from 'discord.js';
+import { REST } from '@discordjs/rest';
+import connectToDatabase from './core/api/mongo/db';
 
 module.exports = async function customServer(app, settings) {
   const handle = app.getRequestHandler();
