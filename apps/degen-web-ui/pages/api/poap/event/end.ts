@@ -5,22 +5,19 @@ import { PoapSettingsDTO } from '../../../../src/core/interfaces/poap-settings.d
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const poapService = await getPoapService(req);
 
-  if (req.method == 'POST') {
-    const { discordServerId, voiceChannelId } = req.body;
-    try {
-      const event: PoapSettingsDTO = await poapService.endPoapEvent(
-        discordServerId,
-        voiceChannelId
-      );
-      res.status(200).json({
-        message: `Successfully ended event for server ${discordServerId} in voice channel ${voiceChannelId}`,
-        event,
-      });
-      return;
-    } catch (err) {
-      res.status(404).json({
-        message: err.message,
-      });
-    }
+  const { discordServerId, voiceChannelId } = req.body;
+  try {
+    const event: PoapSettingsDTO = await poapService.endPoapEvent(
+      discordServerId,
+      voiceChannelId
+    );
+    res.status(200).json({
+      message: `Successfully ended event for server ${discordServerId} in voice channel ${voiceChannelId}`,
+      event,
+    });
+  } catch (err) {
+    res.status(404).json({
+      message: err.message,
+    });
   }
 }

@@ -53,11 +53,10 @@ export class PoapService {
     return result;
   }
 
-  async getPoapEvents(settings: PoapSettingsDTO) {
-    console.log(settings);
+  async getPoapEvents(guildId: string) {
     const result = await this.collections.poapSettings
       .find({
-        discordServerId: settings.discordServerId,
+        discordServerId: guildId,
       })
       .toArray();
     return result;
@@ -71,17 +70,40 @@ export class PoapService {
         throw new Error(`No voice channel found with id ${settings.voiceChannelId}`);
       });
 
-    const poapEvent = await this.collections.poapSettings.insertOne({
-      event: settings.event,
-      isActive: true,
-      startTime: settings.startTime,
-      endTime: settings.endTime,
-      discordUserId: settings.discordUserId,
-      voiceChannelId: settings.voiceChannelId,
-      voiceChannelName: voiceChannel.name,
+    const activeEvent = await this.collections.poapSettings.findOne({
       discordServerId: settings.discordServerId,
+      voiceChannelId: settings.voiceChannelId,
+      isActive: true,
     });
-    return poapEvent as unknown as PoapSettingsDTO;
+
+    if (activeEvent !== null) {
+      throw new Error(
+        `Active event for server ${settings.discordServerId} in voice channel ${settings.voiceChannelId}`
+      );
+    }
+
+    const result = await this.collections.poapSettings.findOneAndUpdate(
+      {
+        discordServerId: settings.discordServerId,
+        voiceChannelId: settings.voiceChannelId,
+      },
+      {
+        $set: {
+          event: settings.event,
+          isActive: true,
+          startTime: new Date().toISOString(),
+          endTime: settings.endTime,
+          discordUserId: settings.discordUserId,
+          voiceChannelId: settings.voiceChannelId,
+          voiceChannelName: voiceChannel.name,
+          discordServerId: settings.discordServerId,
+        },
+      },
+      {
+        upsert: true,
+      }
+    );
+    return result.value as unknown as PoapSettingsDTO;
   }
 
   async endPoapEvent(guildId: string, voiceChannelId: string) {
