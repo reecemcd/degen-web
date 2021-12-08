@@ -1,7 +1,11 @@
 import { ServerGlobals } from './../../../server';
 import { MongoDbCollections } from './db';
 import { IncomingMessage } from 'http';
-import { DegenService, PoapAdmin } from '../../interfaces/degen-service.interface';
+import {
+  DegenService,
+  PoapAdmin,
+  PoapSettings,
+} from '../../interfaces/degen-service.interface';
 import { Db } from 'mongodb';
 
 export class MongoDegenService implements DegenService {
@@ -31,6 +35,26 @@ export class MongoDegenService implements DegenService {
   async removePoapAdmins(admin: PoapAdmin) {
     const result = await this.collections.poapAdmins.deleteMany(admin);
     return result;
+  }
+
+  async getPoapEvents(settings: PoapSettings) {
+    console.log(settings);
+    const result = await this.collections.poapSettings
+      .find({
+        discordServerId: settings.discordServerId,
+        isActive: settings.isActive,
+        voiceChannelId: settings.voiceChannelId,
+      })
+      .toArray();
+    return result;
+  }
+
+  async startPoapEvent(settings: PoapSettings) {
+    return;
+  }
+
+  async endPoapEvent(settings: PoapSettings) {
+    return;
   }
 }
 
