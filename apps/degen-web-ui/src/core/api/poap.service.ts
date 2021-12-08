@@ -58,19 +58,53 @@ export class PoapService {
     const result = await this.collections.poapSettings
       .find({
         discordServerId: settings.discordServerId,
-        isActive: settings.isActive,
-        voiceChannelId: settings.voiceChannelId,
       })
       .toArray();
     return result;
   }
 
   async startPoapEvent(settings: PoapSettingsDTO) {
-    return;
+    const guild = await this.client.guilds.fetch(settings.discordServerId);
+    const voiceChannel = await guild.channels
+      .fetch(settings.voiceChannelId)
+      .catch(() => {
+        throw new Error(`No voice channel found with id ${settings.voiceChannelId}`);
+      });
+
+    const poapEvent = await this.collections.poapSettings.insertOne({
+      event: settings.event,
+      isActive: true,
+      startTime: settings.startTime,
+      endTime: settings.endTime,
+      discordUserId: settings.discordUserId,
+      voiceChannelId: settings.voiceChannelId,
+      voiceChannelName: voiceChannel.name,
+      discordServerId: settings.discordServerId,
+    });
+    return poapEvent as unknown as PoapSettingsDTO;
   }
 
-  async endPoapEvent(settings: PoapSettingsDTO) {
-    return;
+  async endPoapEvent(guildId: string, voiceChannelId: string) {
+    const result = await this.collections.poapSettings.findOneAndUpdate(
+      {
+        discordServerId: guildId,
+        voiceChannelId: voiceChannelId,
+        isActive: true,
+      },
+      {
+        $set: {
+          isActive: false,
+          endTime: new Date().toISOString(),
+        },
+      }
+    );
+
+    if (result.value == null) {
+      throw new Error(
+        `No active event found for server ${guildId} in voice channel ${voiceChannelId}`
+      );
+    }
+    return result.value as unknown as PoapSettingsDTO;
   }
 }
 

@@ -1,4 +1,5 @@
 export interface PoapSettingsDTO {
+  _id: string;
   event: string;
   isActive: boolean;
   startTime: string;
