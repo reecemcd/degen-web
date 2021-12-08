@@ -1,28 +1,12 @@
-export interface DegenService {
+import { PoapAdminDTO } from './poap-admin.dto';
+import { PoapSettingsDTO } from './poap-settings.dto';
+
+export interface PoapService {
   getPoapAdmins(guildId: string | string[]);
-  addPoapAdmins(admin: PoapAdmin);
-  removePoapAdmins(admin: PoapAdmin);
+  addPoapAdmins(admin: PoapAdminDTO);
+  removePoapAdmins(admin: PoapAdminDTO);
 
-  getPoapEvents(settings: PoapSettings);
-  startPoapEvent(settings: PoapSettings);
-  endPoapEvent(settings: PoapSettings);
-}
-
-export interface PoapAdmin {
-  objectType: string;
-  discordObjectId: string;
-  discordObjectName: string;
-  discordServerId: string;
-  discordServerName: string;
-}
-
-export interface PoapSettings {
-  event: string;
-  isActive: boolean;
-  startTime: string;
-  endTime: string;
-  discordUserId: string;
-  voiceChannelId: string;
-  voiceChannelName: string;
-  discordServerId: string;
+  getPoapEvents(settings: PoapSettingsDTO);
+  startPoapEvent(settings: PoapSettingsDTO);
+  endPoapEvent(settings: PoapSettingsDTO);
 }

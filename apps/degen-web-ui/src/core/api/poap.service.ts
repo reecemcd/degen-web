@@ -4,6 +4,7 @@ import { IncomingMessage } from 'http';
 import { PoapAdminDTO } from '../interfaces/poap-admin.dto';
 import { Db, ObjectId } from 'mongodb';
 import { Client as DiscordClient } from 'discord.js';
+import { PoapSettingsDTO } from '../interfaces/poap-settings.dto';
 
 export class PoapService {
   private db: Db;
@@ -50,6 +51,26 @@ export class PoapService {
       _id: new ObjectId(_id),
     });
     return result;
+  }
+
+  async getPoapEvents(settings: PoapSettingsDTO) {
+    console.log(settings);
+    const result = await this.collections.poapSettings
+      .find({
+        discordServerId: settings.discordServerId,
+        isActive: settings.isActive,
+        voiceChannelId: settings.voiceChannelId,
+      })
+      .toArray();
+    return result;
+  }
+
+  async startPoapEvent(settings: PoapSettingsDTO) {
+    return;
+  }
+
+  async endPoapEvent(settings: PoapSettingsDTO) {
+    return;
   }
 }
 
