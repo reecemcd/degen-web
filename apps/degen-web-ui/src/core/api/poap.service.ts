@@ -5,17 +5,21 @@ import { PoapAdminDTO } from '../interfaces/poap-admin.dto';
 import { Db, ObjectId } from 'mongodb';
 import { Client as DiscordClient } from 'discord.js';
 import { PoapSettingsDTO } from '../interfaces/poap-settings.dto';
+import { PoapParticipantDTO } from '../interfaces/poap-participant';
+import { DiscordService, getDiscordService } from './discord.service';
 
 export class PoapService {
   private db: Db;
   private collections: MongoDbCollections;
   private client: DiscordClient;
+  private discordService: DiscordService;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async init(req: any) {
     this.client = (req.app.globals as ServerGlobals).discordClient;
     this.db = req.app.globals.db;
     this.collections = (req.app.globals as ServerGlobals).collections;
+    this.discordService = await getDiscordService(req);
     return this;
   }
 
@@ -59,7 +63,26 @@ export class PoapService {
         discordServerId: guildId,
       })
       .toArray();
-    return result;
+
+    // Return events with active members in channel
+    return Promise.all(
+      result.map(async (event) => {
+        return {
+          _id: event._id,
+          event: event.event,
+          isActive: event.isActive,
+          startTime: event.startTime,
+          endTime: event.endTime,
+          discordUserId: event.discordUserId,
+          voiceChannelId: event.voiceChannelId,
+          voiceChannelName: event.voiceChannelName,
+          members: await this.discordService.getMembersInChannel(
+            event.discordServerId,
+            event.voiceChannelId
+          ),
+        };
+      })
+    );
   }
 
   async startPoapEvent(settings: PoapSettingsDTO) {
@@ -127,6 +150,21 @@ export class PoapService {
       );
     }
     return result.value as unknown as PoapSettingsDTO;
+  }
+
+  async insertPoapParticipant(participant: PoapParticipantDTO, event: string) {
+    const result = await this.collections.poapParticipants.insertOne({
+      event: event,
+      discordUserId: participant.discordUserId,
+      discordUserTag: participant.discordUserId,
+      startTime: participant.startTime,
+      endTime: null,
+      voiceChannelId: participant.voiceChannelId,
+      discordServerId: participant.discordServerId,
+      durationInMinutes: 0,
+    });
+
+    return result;
   }
 }
 

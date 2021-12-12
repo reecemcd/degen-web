@@ -1,3 +1,5 @@
+import { PoapParticipantDTO } from './poap-participant';
+
 export interface PoapSettingsDTO {
   _id: string;
   event: string;
@@ -8,4 +10,6 @@ export interface PoapSettingsDTO {
   voiceChannelId: string;
   voiceChannelName: string;
   discordServerId: string;
+
+  members?: PoapParticipantDTO[];
 }
