@@ -6,21 +6,17 @@ import { Db, ObjectId } from 'mongodb';
 import { Client as DiscordClient } from 'discord.js';
 import { PoapSettingsDTO } from '../interfaces/poap-settings.dto';
 import { PoapParticipantDTO } from '../interfaces/poap-participant';
-import { getSession } from 'next-auth/react';
-import { DiscordSession } from '../interfaces/auth-session';
 
 export class PoapService {
   private db: Db;
   private collections: MongoDbCollections;
   private client: DiscordClient;
-  private userSession: DiscordSession;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async init(req: any) {
     this.client = (req.app.globals as ServerGlobals).discordClient;
     this.db = req.app.globals.db;
     this.collections = (req.app.globals as ServerGlobals).collections;
-    this.userSession = (await getSession({ req })) as DiscordSession;
     return this;
   }
 
@@ -90,8 +86,9 @@ export class PoapService {
   async startPoapEvent(
     event: string,
     duration: number,
+    userId: string,
     guildId: string,
-    voiceChannelId
+    voiceChannelId: string
   ) {
     const guild = await this.client.guilds.fetch(guildId);
     const voiceChannel = await guild.channels.fetch(voiceChannelId).catch(() => {
@@ -121,7 +118,7 @@ export class PoapService {
           isActive: true,
           startTime: new Date().toISOString(),
           endTime: new Date().toISOString(),
-          discordUserId: this.userSession.user?.id,
+          discordUserId: userId,
           voiceChannelId: voiceChannel.id,
           voiceChannelName: voiceChannel.name,
           discordServerId: guildId,

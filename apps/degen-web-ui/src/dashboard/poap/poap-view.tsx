@@ -73,7 +73,7 @@ export function PoapView({ activeGuild }: PoapView) {
             body: JSON.stringify({
               eventName: formResult.event,
               duration: formResult.duration,
-              discordServerId: activeGuild?.id,
+              guildId: activeGuild?.id,
               voiceChannelId: formResult.voiceChannelId,
             }),
             headers: new Headers({
@@ -89,10 +89,7 @@ export function PoapView({ activeGuild }: PoapView) {
     });
   };
 
-  const openEndEventConfirmation = (
-    discordServerId: string,
-    voiceChannelId: string
-  ) => {
+  const openEndEventConfirmation = (guildId: string, voiceChannelId: string) => {
     setModalState({
       activeModal: 'CONFIRM_END_EVENT',
       onClose: (action: 'CANCEL' | 'SUBMIT') => {
@@ -100,7 +97,7 @@ export function PoapView({ activeGuild }: PoapView) {
           fetch(`/api/poap/event/end`, {
             method: 'POST',
             body: JSON.stringify({
-              discordServerId: discordServerId,
+              guildId: guildId,
               voiceChannelId: voiceChannelId,
             }),
             headers: new Headers({
