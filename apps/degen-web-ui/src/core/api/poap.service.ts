@@ -107,6 +107,7 @@ export class PoapService {
       );
     }
 
+    const startTime = new Date();
     const result = await this.collections.poapSettings.findOneAndUpdate(
       {
         discordServerId: guildId,
@@ -116,8 +117,8 @@ export class PoapService {
         $set: {
           event: event,
           isActive: true,
-          startTime: new Date().toISOString(),
-          endTime: new Date().toISOString(),
+          startTime: startTime.toISOString(),
+          endTime: new Date(startTime.getTime() + duration * 60000).toISOString(),
           discordUserId: userId,
           voiceChannelId: voiceChannel.id,
           voiceChannelName: voiceChannel.name,
