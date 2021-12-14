@@ -22,6 +22,7 @@ import PoapTableCard from './poap-table-card';
 import { useCallback, useEffect, useState } from 'react';
 import { PoapSettingsDTO } from '../../core/interfaces/poap-settings.dto';
 import { useForm } from 'react-hook-form';
+import { ChannelDTO } from '../../core/interfaces/channel.dto';
 
 export interface PoapView {
   activeGuild: GuildDTO;
@@ -33,6 +34,10 @@ export function PoapView({ activeGuild }: PoapView) {
 
   const [state, setState] = useState({
     poapEvents: [],
+  });
+
+  const [channelState, setChannelState] = useState({
+    guildChannels: [],
   });
 
   const [modalState, setModalState] = useState({
@@ -57,6 +62,22 @@ export function PoapView({ activeGuild }: PoapView) {
             discordServerId: poapEvent.discordServerId,
             participants: poapEvent.participants,
             _id: poapEvent._id,
+          })),
+        });
+      });
+  }, []);
+
+  const loadChannels = useCallback(() => {
+    fetch(`/api/discord/channels/${activeGuild.id}`)
+      .then((res) => res.json())
+      .then(({ guildChannels }) => {
+        console.log(guildChannels);
+        setChannelState({
+          ...state,
+          guildChannels: guildChannels.map((guildChannel: ChannelDTO) => ({
+            id: guildChannel.id,
+            name: guildChannel.name,
+            type: guildChannel.type,
           })),
         });
       });
@@ -117,6 +138,10 @@ export function PoapView({ activeGuild }: PoapView) {
     loadEvents();
   }, [activeGuild.id, loadEvents]);
 
+  useEffect(() => {
+    loadChannels();
+  }, [activeGuild.id, loadChannels]);
+
   return (
     <>
       {/* Toolbar Row */}
@@ -167,8 +192,11 @@ export function PoapView({ activeGuild }: PoapView) {
                 placeholder="Select voice channel"
                 {...startEventForm.register('voiceChannelId')}
               >
-                <option value="918721893782151212">General</option>
-                <option value="919034226584723466">Test Channel</option>
+                {channelState.guildChannels.map((channel, i) => (
+                  <option key={i} value={channel.id}>
+                    {channel.name}
+                  </option>
+                ))}
               </Select>
             </FormControl>
           </ModalBody>
