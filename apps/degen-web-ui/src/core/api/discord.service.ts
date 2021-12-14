@@ -60,13 +60,13 @@ export class DiscordService {
 
   async getGuildChannels(guildId: string): Promise<ChannelDTO[]> {
     const guild = await this.client.guilds.fetch(guildId);
-    const channels = await guild.channels.fetch();
-
-    const voiceChannels = await Promise.all(
-      channels.map((channel) => this.transformChannelResponse(channel))
+    const channels = await guild.channels.cache.filter(
+      (channel) => channel.type === 'GUILD_VOICE'
     );
 
-    return voiceChannels.filter((channel) => channel.type === 'GUILD_VOICE');
+    return await Promise.all(
+      channels.map((channel) => this.transformChannelResponse(channel as GuildChannel))
+    );
   }
 
   async getMembersInChannel(
