@@ -16,7 +16,7 @@ import {
 import classNames from 'classnames';
 import { BaseProps } from '../../core/interfaces/app-props.interface';
 import { GridContainer } from '../../shared/components/layout/grid-container';
-import { AddIcon, DeleteIcon } from '@chakra-ui/icons';
+import { AddIcon, TriangleDownIcon } from '@chakra-ui/icons';
 import { PoapSettingsDTO } from '../../core/interfaces/poap-settings.dto';
 
 export interface PoapTableCardProps extends BaseProps {
@@ -90,15 +90,21 @@ export default function PoapTableCard({
               <Td>{event.voiceChannelName}</Td>
               <Td>{event?.startTime}</Td>
               <Td>{event?.endTime}</Td>
-              <Td>{event?.members?.length}</Td>
-              {onEndEvent ? (
+              <Td>
+                {event?.participants?.length > 0 ? (
+                  event?.participants.length
+                ) : (
+                  <Box>No Participants</Box>
+                )}
+              </Td>
+              {onEndEvent && event.isActive ? (
                 <Td className="text-right">
                   <Button
                     onClick={() =>
                       onEndEvent(event?.discordServerId, event?.voiceChannelId)
                     }
                   >
-                    <DeleteIcon className="mr-2" /> Remove
+                    <TriangleDownIcon className="mr-2" /> End
                   </Button>
                 </Td>
               ) : (

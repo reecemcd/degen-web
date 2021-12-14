@@ -11,5 +11,5 @@ export interface PoapSettingsDTO {
   voiceChannelName: string;
   discordServerId: string;
 
-  members?: PoapParticipantDTO[];
+  participants?: PoapParticipantDTO[];
 }

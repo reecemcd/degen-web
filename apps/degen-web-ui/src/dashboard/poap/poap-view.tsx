@@ -1,4 +1,19 @@
-import { Box, Button } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  FormControl,
+  FormHelperText,
+  FormLabel,
+  Input,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  Select,
+} from '@chakra-ui/react';
 import { AddIcon } from '@chakra-ui/icons';
 import * as React from 'react';
 import NextLink from 'next/link';
@@ -6,14 +21,23 @@ import { GuildDTO } from '../../core/interfaces/guild.dto';
 import PoapTableCard from './poap-table-card';
 import { useCallback, useEffect, useState } from 'react';
 import { PoapSettingsDTO } from '../../core/interfaces/poap-settings.dto';
+import { useForm } from 'react-hook-form';
 
 export interface PoapView {
   activeGuild: GuildDTO;
 }
 
 export function PoapView({ activeGuild }: PoapView) {
+  const initialAddRef = React.useRef();
+  const startEventForm = useForm();
+
   const [state, setState] = useState({
     poapEvents: [],
+  });
+
+  const [modalState, setModalState] = useState({
+    activeModal: null,
+    onClose: null,
   });
 
   const loadEvents = useCallback(() => {
@@ -31,12 +55,66 @@ export function PoapView({ activeGuild }: PoapView) {
             voiceChannelId: poapEvent.voiceChannelId,
             voiceChannelName: poapEvent.voiceChannelName,
             discordServerId: poapEvent.discordServerId,
-            members: poapEvent.members,
+            participants: poapEvent.participants,
             _id: poapEvent._id,
           })),
         });
       });
   }, []);
+
+  const openStartEventConfirmation = () => {
+    setModalState({
+      activeModal: 'START_EVENT',
+      onClose: (action: 'CANCEL' | 'SUBMIT') => {
+        if (action === 'SUBMIT') {
+          const formResult = startEventForm.getValues();
+          fetch(`/api/poap/event/start`, {
+            method: 'POST',
+            body: JSON.stringify({
+              eventName: formResult.event,
+              duration: formResult.duration,
+              discordServerId: activeGuild?.id,
+              voiceChannelId: formResult.voiceChannelId,
+            }),
+            headers: new Headers({
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            }),
+          })
+            .then((res) => res.json())
+            .then((result) => loadEvents());
+        }
+        setModalState({ activeModal: null, onClose: null });
+      },
+    });
+  };
+
+  const openEndEventConfirmation = (
+    discordServerId: string,
+    voiceChannelId: string
+  ) => {
+    setModalState({
+      activeModal: 'CONFIRM_END_EVENT',
+      onClose: (action: 'CANCEL' | 'SUBMIT') => {
+        if (action === 'SUBMIT') {
+          fetch(`/api/poap/event/end`, {
+            method: 'POST',
+            body: JSON.stringify({
+              discordServerId: discordServerId,
+              voiceChannelId: voiceChannelId,
+            }),
+            headers: new Headers({
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            }),
+          })
+            .then((res) => res.json())
+            .then((result) => loadEvents());
+        }
+        setModalState({ activeModal: null, onClose: null });
+      },
+    });
+  };
 
   useEffect(() => {
     loadEvents();
@@ -47,9 +125,92 @@ export function PoapView({ activeGuild }: PoapView) {
       {/* Toolbar Row */}
       <PoapTableCard
         title="POAP Events"
-        description="Manage Poap Events for server"
+        description="Start, End and View Poap Events for this server"
         events={state.poapEvents}
+        onStartEvent={openStartEventConfirmation}
+        onEndEvent={openEndEventConfirmation}
       ></PoapTableCard>
+
+      {/* POAP Start Event Modal */}
+      <Modal
+        isCentered
+        initialFocusRef={initialAddRef}
+        isOpen={modalState.activeModal === 'START_EVENT'}
+        onClose={() => modalState.onClose('CANCEL')}
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Start Event</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <FormControl>
+              <FormLabel>Poap Event Name</FormLabel>
+              <Input
+                ref={initialAddRef}
+                type="input"
+                placeholder="Enter event name"
+                {...startEventForm.register('event')}
+              />
+              <FormHelperText>Name of Poap Event</FormHelperText>
+            </FormControl>
+            <FormControl>
+              <FormLabel>Poap Event Duration</FormLabel>
+              <Input
+                ref={initialAddRef}
+                type="input"
+                placeholder="Enter event duration"
+                {...startEventForm.register('duration')}
+              />
+              <FormHelperText>In Minutes</FormHelperText>
+            </FormControl>
+            <FormControl>
+              <FormLabel>Voice Channel</FormLabel>
+              <Select
+                ref={initialAddRef}
+                placeholder="Select voice channel"
+                {...startEventForm.register('voiceChannelId')}
+              >
+                <option value="918721893782151212">General</option>
+                <option value="919034226584723466">Test Channel</option>
+              </Select>
+            </FormControl>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              variant="ghost"
+              className="mr-2"
+              onClick={() => modalState.onClose('CANCEL')}
+            >
+              Cancel
+            </Button>
+            <Button onClick={() => modalState.onClose('SUBMIT')}>Start Event</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* POAP End Event Modal */}
+      <Modal
+        isCentered
+        isOpen={modalState.activeModal === 'CONFIRM_END_EVENT'}
+        onClose={() => modalState.onClose('CANCEL')}
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Confirm End POAP Event</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>Are you sure you want to end this event?</ModalBody>
+          <ModalFooter>
+            <Button
+              variant="ghost"
+              className="mr-2"
+              onClick={() => modalState.onClose('CANCEL')}
+            >
+              Cancel
+            </Button>
+            <Button onClick={() => modalState.onClose('SUBMIT')}>End</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </>
   );
 }

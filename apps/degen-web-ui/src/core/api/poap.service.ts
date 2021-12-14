@@ -6,20 +6,21 @@ import { Db, ObjectId } from 'mongodb';
 import { Client as DiscordClient } from 'discord.js';
 import { PoapSettingsDTO } from '../interfaces/poap-settings.dto';
 import { PoapParticipantDTO } from '../interfaces/poap-participant';
-import { DiscordService, getDiscordService } from './discord.service';
+import { getSession } from 'next-auth/react';
+import { DiscordSession } from '../interfaces/auth-session';
 
 export class PoapService {
   private db: Db;
   private collections: MongoDbCollections;
   private client: DiscordClient;
-  private discordService: DiscordService;
+  private userSession: DiscordSession;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async init(req: any) {
     this.client = (req.app.globals as ServerGlobals).discordClient;
     this.db = req.app.globals.db;
     this.collections = (req.app.globals as ServerGlobals).collections;
-    this.discordService = await getDiscordService(req);
+    this.userSession = (await getSession({ req })) as DiscordSession;
     return this;
   }
 
@@ -76,7 +77,8 @@ export class PoapService {
           discordUserId: event.discordUserId,
           voiceChannelId: event.voiceChannelId,
           voiceChannelName: event.voiceChannelName,
-          members: await this.discordService.getMembersInChannel(
+          discordServerId: event.discordServerId,
+          participants: await this.getPoapParticipants(
             event.discordServerId,
             event.voiceChannelId
           ),
@@ -85,41 +87,44 @@ export class PoapService {
     );
   }
 
-  async startPoapEvent(settings: PoapSettingsDTO) {
-    const guild = await this.client.guilds.fetch(settings.discordServerId);
-    const voiceChannel = await guild.channels
-      .fetch(settings.voiceChannelId)
-      .catch(() => {
-        throw new Error(`No voice channel found with id ${settings.voiceChannelId}`);
-      });
+  async startPoapEvent(
+    event: string,
+    duration: number,
+    guildId: string,
+    voiceChannelId
+  ) {
+    const guild = await this.client.guilds.fetch(guildId);
+    const voiceChannel = await guild.channels.fetch(voiceChannelId).catch(() => {
+      throw new Error(`No voice channel found with id ${voiceChannelId}`);
+    });
 
     const activeEvent = await this.collections.poapSettings.findOne({
-      discordServerId: settings.discordServerId,
-      voiceChannelId: settings.voiceChannelId,
+      discordServerId: guildId,
+      voiceChannelId: voiceChannelId,
       isActive: true,
     });
 
     if (activeEvent !== null) {
       throw new Error(
-        `Active event for server ${settings.discordServerId} in voice channel ${settings.voiceChannelId}`
+        `Active event for server ${guildId} in voice channel ${voiceChannelId}`
       );
     }
 
     const result = await this.collections.poapSettings.findOneAndUpdate(
       {
-        discordServerId: settings.discordServerId,
-        voiceChannelId: settings.voiceChannelId,
+        discordServerId: guildId,
+        voiceChannelId: voiceChannelId,
       },
       {
         $set: {
-          event: settings.event,
+          event: event,
           isActive: true,
           startTime: new Date().toISOString(),
-          endTime: settings.endTime,
-          discordUserId: settings.discordUserId,
-          voiceChannelId: settings.voiceChannelId,
+          endTime: new Date().toISOString(),
+          discordUserId: this.userSession.user?.id,
+          voiceChannelId: voiceChannel.id,
           voiceChannelName: voiceChannel.name,
-          discordServerId: settings.discordServerId,
+          discordServerId: guildId,
         },
       },
       {
@@ -152,17 +157,41 @@ export class PoapService {
     return result.value as unknown as PoapSettingsDTO;
   }
 
+  async getPoapParticipants(guildId: string, voiceChannelId: string) {
+    const result = await this.collections.poapParticipants
+      .find({
+        discordServerId: guildId,
+        voiceChannelId: voiceChannelId,
+      })
+      .toArray();
+
+    return result as unknown as PoapParticipantDTO[];
+  }
+
   async insertPoapParticipant(participant: PoapParticipantDTO, event: string) {
     const result = await this.collections.poapParticipants.insertOne({
       event: event,
       discordUserId: participant.discordUserId,
-      discordUserTag: participant.discordUserId,
+      discordUserTag: participant.discordUserTag,
       startTime: participant.startTime,
       endTime: null,
       voiceChannelId: participant.voiceChannelId,
       discordServerId: participant.discordServerId,
       durationInMinutes: 0,
     });
+
+    return result;
+  }
+
+  async removePoapParticipants(guildId: string, voiceChannelId: string) {
+    const result = await this.collections.poapParticipants.deleteMany({
+      discordServerId: guildId,
+      voiceChannelId: voiceChannelId,
+    });
+
+    if (!result.acknowledged) {
+      throw new Error(`Error Removing Participants`);
+    }
 
     return result;
   }
